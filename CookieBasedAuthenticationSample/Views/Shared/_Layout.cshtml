@@ -27,6 +27,18 @@
                         </li>
                     </ul>
                 </div>
+                @* 此區塊為登入登出按鈕區塊 登入後會顯示Claim:Name及登出按鈕 *@
+                <div class="d-flex align-items-center">
+                    @if (Context.User?.Identity?.IsAuthenticated ?? false)
+                    {
+                        <span class="text-dark mx-2">@Context.User.Identity.Name</span>
+                        <a class="btn btn-outline-info" asp-controller="Account" asp-action="Logout">登出</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-success" asp-controller="Account" asp-action="Login">登入</a>
+                    }
+                </div>
             </div>
         </nav>
     </header>

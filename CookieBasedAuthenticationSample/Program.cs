@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+
 namespace CookieBasedAuthenticationSample
 {
     public class Program
@@ -8,6 +10,12 @@ namespace CookieBasedAuthenticationSample
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Account/Login";
+                });
 
             var app = builder.Build();
 
@@ -24,6 +32,8 @@ namespace CookieBasedAuthenticationSample
 
             app.UseRouting();
 
+            // 先驗證再授權.
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(
