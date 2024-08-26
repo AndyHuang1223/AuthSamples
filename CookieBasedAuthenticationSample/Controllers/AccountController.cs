@@ -1,4 +1,6 @@
-﻿using CookieBasedAuthenticationSample.Models;
+﻿using CookieBasedAuthenticationSample.Entities;
+using CookieBasedAuthenticationSample.Extensions;
+using CookieBasedAuthenticationSample.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +10,13 @@ namespace CookieBasedAuthenticationSample.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly MyIdentityDbContext _dbContext;
+
+        public AccountController(MyIdentityDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
         [HttpGet]
         public IActionResult Login(string returnUrl)
         {
@@ -22,12 +31,29 @@ namespace CookieBasedAuthenticationSample.Controllers
         [AutoValidateAntiforgeryToken]
         public async Task<IActionResult> Login([FromForm] LoginViewModel request)
         {
-            // 驗證帳號密碼.
-            // 暫時有輸入都當作可以登入
+            // MVC模型驗證
             if (!ModelState.IsValid)
             {
                 return View(request);
             }
+
+            if (string.IsNullOrEmpty(request.Account) || string.IsNullOrEmpty(request.Password))
+            {
+                ModelState.AddModelError(string.Empty, "帳號或密碼不可為空");
+                return View(request);
+            }
+
+            //驗證帳號密碼
+            var user = _dbContext.Users.FirstOrDefault(x => x.Email == request.Account && x.Password == request.Password.ToSHA256());
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "帳號或密碼錯誤");
+                return View(request);
+            }
+
+            //取得使用者角色
+            var userRoles = _dbContext.UserRoles.Where(x => x.UserId == user.Id).Select(x => x.RoleId).ToList();
+            var userRoleClaims = _dbContext.Roles.Where(x => userRoles.Contains(x.Id)).ToList().Select(role => new Claim(ClaimTypes.Role, role.Name));
 
             // 登入成功，設定 Cookie.
             var claims = new List<Claim>
@@ -40,9 +66,11 @@ namespace CookieBasedAuthenticationSample.Controllers
                 //new Claim(ClaimTypes.Role, "HRManager"),
                 //new Claim(ClaimTypes.Role, "PowerUser"),
                 //new Claim(ClaimTypes.Role, "ControlPanelUser"),
-
-
             };
+            
+            //加入角色
+            claims.AddRange(userRoleClaims);
+
             //可以設定 Cookie 的其他屬性 (https://learn.microsoft.com/zh-tw/dotnet/api/microsoft.aspnetcore.authentication.authenticationproperties)
             var authProperties = new AuthenticationProperties
             {

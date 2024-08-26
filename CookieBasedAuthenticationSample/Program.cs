@@ -1,4 +1,6 @@
+using CookieBasedAuthenticationSample.Entities;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 
 namespace CookieBasedAuthenticationSample
 {
@@ -18,6 +20,9 @@ namespace CookieBasedAuthenticationSample
                     //forbidden 403 ¸õÂàªº­¶­±
                     options.AccessDeniedPath = "/Account/AccessDenied";
                 });
+
+            // µù¥U DbContext
+            builder.Services.AddDbContext<MyIdentityDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("MyIdentityDbConnection")));
 
             var app = builder.Build();
 
