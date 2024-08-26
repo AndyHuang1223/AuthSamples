@@ -15,6 +15,8 @@ namespace CookieBasedAuthenticationSample
                 .AddCookie(options =>
                 {
                     options.LoginPath = "/Account/Login";
+                    //forbidden 403 ¸õÂàªº­¶­±
+                    options.AccessDeniedPath = "/Account/AccessDenied";
                 });
 
             var app = builder.Build();

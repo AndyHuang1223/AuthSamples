@@ -35,6 +35,13 @@ namespace CookieBasedAuthenticationSample.Controllers
                 // 解析Cookie後 會存入 HttpContext.User.Identity.Name 屬性內
                 new Claim(ClaimTypes.Name, request.Account),
 
+                //以下角色為角色授權的範例使用，可以自行定義
+                //new Claim(ClaimTypes.Role, "Admin"),
+                //new Claim(ClaimTypes.Role, "HRManager"),
+                //new Claim(ClaimTypes.Role, "PowerUser"),
+                //new Claim(ClaimTypes.Role, "ControlPanelUser"),
+
+
             };
             //可以設定 Cookie 的其他屬性 (https://learn.microsoft.com/zh-tw/dotnet/api/microsoft.aspnetcore.authentication.authenticationproperties)
             var authProperties = new AuthenticationProperties
@@ -89,6 +96,12 @@ namespace CookieBasedAuthenticationSample.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             return Redirect("/");
+        }
+
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
     }
 }
